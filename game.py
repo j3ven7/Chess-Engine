@@ -10,7 +10,6 @@ import tensorflow as tf
 from tensorflow.python.tools import inspect_checkpoint as chkp
 import ai
 import time
-from rl.src.fast_predict import FastPredict
 """
 TODO: Figure out a way to upload a saved model so that predictions can be made about
  a given board
@@ -81,7 +80,7 @@ if __name__ == '__main__':
 		# Restore the tensors you want
 		graph = tf.get_default_graph()
 			
-		chkp.print_tensors_in_checkpoint_file("/Users/joshua/Documents/Cornell_Documents/CS_4700/chess_stuff/tmp/model.ckpt-100", tensor_name='', all_tensors=True, all_tensor_names=True)
+		#chkp.print_tensors_in_checkpoint_file("/Users/joshua/Documents/Cornell_Documents/CS_4700/chess_stuff/tmp/model.ckpt-100", tensor_name='', all_tensors=True, all_tensor_names=True)
 			
 		# Loading the estimator to feed to the AI
 		estimator = tf.estimator.Estimator(model_fn=train.cnn_model,model_dir="/Users/joshua/Documents/Cornell_Documents/CS_4700/chess_stuff/tmp")
@@ -91,6 +90,14 @@ if __name__ == '__main__':
 	player2 = ai.AI(estimator, depth=3, name="Black")
 
 	game = Game(player1, player2)
-	#print(estimator.get_variable_value())
-	game.startGame()
+	print(estimator.get_variable_names())
+	print(np.shape(estimator.get_variable_value('conv1/bias')))
+	print(np.shape(estimator.get_variable_value('conv1/kernel')))
+	print(np.shape(estimator.get_variable_value('conv2/bias')))
+	print(np.shape(estimator.get_variable_value('dense/bias')))
+	print(np.shape(estimator.get_variable_value('logits/bias')))
+
+
+
+	#game.startGame()
 		
