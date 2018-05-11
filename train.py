@@ -79,8 +79,8 @@ def cnn_model(features, labels, mode):
 def main(placeholder):
 	#Get time stamp	
 	#NOTE THESE NEED TO BE CHANGED FOR OPTIMAL RESULTS
-	train_data, train_labels = p.read_all_games(file="ficsgamesdb_201401_chess2000_nomovetimes_1549357.pgn")
-	eval_data, eval_labels = p.read_all_games(file="ficsgamesdb_201602_standard2000_nomovetimes_1546990.pgn")
+	train_data, train_labels = p.read_all_games(file="ficsgamesdb_201401_chess2000_nomovetimes_1549357.pgn", mode=1)
+	eval_data, eval_labels = p.read_all_games(file="ficsgamesdb_201602_standard2000_nomovetimes_1546990.pgn", mode=1)
 	
 	#Just testing to see if prediction is viable option for training our alpha beta pruning
 	test_prediction = train_data[random.randint(0,len(train_data) - 1)]
@@ -88,7 +88,7 @@ def main(placeholder):
 	
 	# Create the Estimator
 	classifier = tf.estimator.Estimator(
-		model_fn=cnn_model, model_dir="/Users/joshua/Documents/Cornell_Documents/CS_4700/chess_stuff/tmp")
+		model_fn=cnn_model, model_dir="/Users/joshua/Documents/Cornell_Documents/CS_4700/chess_stuff/win_model")
 	
 	# Set up logging for predictions
 	tensors_to_log = {"probabilities": "softmax_tensor"}
@@ -112,7 +112,7 @@ def main(placeholder):
 	
 	classifier.train(
 		input_fn=train_input_fn,
-		steps=100, #20,000 For training to start - lower if it's overfitting
+		steps=1000, #20,000 For training to start - lower if it's overfitting
 		 hooks=[logging_hook])
 	
 	# Evaluate the model and print results

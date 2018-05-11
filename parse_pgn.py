@@ -22,7 +22,7 @@ testing on two of the following
 
 
 #Big pgn = ficsgamesdb_201602_standard2000_nomovetimes_1546990.pgn
-def read_all_games(file="kasparov-deep-blue-1997.pgn"):
+def read_all_games(file="kasparov-deep-blue-1997.pgn", mode=0):
 	""" Reads and parses all games in a given pgn file, storing boards and results in a tuple
 	
 	TODO:
@@ -52,7 +52,7 @@ def read_all_games(file="kasparov-deep-blue-1997.pgn"):
 			board_2d = np.array(fen_to_2d(board))
 			#Adds board to tmp array -- to be appended to training data
 			training_data.append(board_2d)
-			training_labels.append(calc_advantage(board_2d))
+			training_labels.append(calc_advantage(board_2d, game, mode))
 			#Game is a stack of moves so "pushes" next move onto stack
 			board.push(move)
 		
@@ -63,7 +63,7 @@ def read_all_games(file="kasparov-deep-blue-1997.pgn"):
 	print("Read them all!")
 	return (np.asarray(training_data), np.asarray(training_labels))
 
-def calc_advantage(board, game=None):
+def calc_advantage(board, game=None, mode=0):
 	""" Calculates advantage based on 3 basic metrics -- material advantage, who controls the middle, and
 		who won the game
 		
@@ -73,26 +73,33 @@ def calc_advantage(board, game=None):
 	Args:
 		board -- 2d representation of board -- used to calculate material advantage and who controls middle
 		game  -- game object from chess -- used to get "Result" header
+		mode  -- default is zero -- if switched to 1 just takes into account the winner of the game 
 		
 	Returns:
 		One hot vector indicative of who has the "advantage" """
 	
 	start = time.time()
-	#Indicates who has the 'advantage' based on a combination of # and qualoity of pieces
-	material_advantage = sum(map(sum, board))
 	
-	#Evaluate the middle of the board
-	center_advantage = calc_center_control(board)
+	if mode == 0:
+		#Indicates who has the 'advantage' based on a combination of # and qualoity of pieces
+		material_advantage = sum(map(sum, board))
+		
+		#Evaluate the middle of the board
+		center_advantage = calc_center_control(board)
+		
+		#Result is summation of material advantage and who controls the center
+		rst = material_advantage if material_advantage != 0 else material_advantage + center_advantage
+		print(time.time() - start)
+		if rst > 0.:
+			return 0
+		elif rst < 0.:
+			return 2
+		else:
+			return 1
 	
-	#Result is summation of material advantage and who controls the center
-	rst = material_advantage if material_advantage != 0 else material_advantage + center_advantage
-	print(time.time() - start)
-	if rst > 0.:
-		return 0
-	elif rst < 0.:
-		return 2
-	else:
-		return 1
+	elif mode == 1:
+		return result_to_int(game.headers["Result"])
+		
 
 def calc_center_control(board, w=.1):
 	""" Calculates sum of center squares of board to see has control over the center
@@ -111,10 +118,25 @@ def calc_center_control(board, w=.1):
 			rst = rst + board[key][val]
 		
 	return w * (rst)
-	
 
+def result_to_int(s):
+	""" Gives float representation of win result given a string of the form "1-0" (white wins), "0-1" (black wins), "1/2-1/2" (tie)
+	
+	Args:
+		s - string to parse
+	Retunrs:
+		float: 0 - White wins ; 2 - Black wins ; 1 - Tie
+	
+	"""
+	if s == "1-0":
+		return 0.
+	elif s == "0-1":
+		return 2.
+	else:
+		return 1.
+	
 def result_to_one_hot(s):
-	""" Gives int representation of win result given a string of the form "1-0" (white wins), "0-1" (black wins), "1/2-1/2" (tie)
+	""" Gives one hot representation of win result given a string of the form "1-0" (white wins), "0-1" (black wins), "1/2-1/2" (tie)
 	
 	Args:
 		s - string to parse

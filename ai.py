@@ -9,6 +9,7 @@ import sys
 import tensorflow as tf
 from tensorflow.python.tools import inspect_checkpoint as chkp
 import time
+from rl.src import fast_predict
 
 """
 TODO: Figure out a way to upload a saved model so that predictions can be made about
@@ -79,12 +80,13 @@ class AI(object):
 		Returns:
 			value of optiomal move
 		"""
-	
 		#Check if we are at max depth  -- evaluate the board using evaluationMethod
 		if depth <= 0:
 			# TODO: Provide mechanism for evaluation method to be static
 			start = time.time()
-			result_dict = list(self.evaluationMethod.predict(input_fn=self.generatePredictFn(board)))
+			result_dict = list(self.evaluationMethod.predict(self.generatePredictFn(board), yield_single_examples=True))
+			# result_dict = self.evaluationMethod.predict(p.fen_to_2d(board))
+			# print(fast_predict.FastPredict(self.evaluationMethod.predict(input_fn=self.generatePredictFn(board))))
 			probabilities = result_dict[0]['probabilities']			
 			# Basically return probability white wins if it is white's turn otherwise return black's probability to win
 			return probabilities[0] if turn == True else probabilities[2]		
@@ -106,9 +108,10 @@ class AI(object):
 			
 			#<------ Return Conditions -------->
 			if score >= beta:
-				print("pruned")
+				print("pruned NOW")
 				return score
 			if score > alpha:
+				print("pruned NOW")
 				alpha = score
 		
 		#Negamax allows us to return alpha since this will just be flipped each time
@@ -127,5 +130,6 @@ class AI(object):
 		return tf.estimator.inputs.numpy_input_fn(
 								x={"x" : np.array(p.fen_to_2d(board))},
 								num_epochs=1,
-								shuffle=False)
+								shuffle=False
+								)
 		
