@@ -9,7 +9,6 @@ import sys
 import tensorflow as tf
 from tensorflow.python.tools import inspect_checkpoint as chkp
 import time
-from rl.src import fast_predict
 
 """
 TODO: Figure out a way to upload a saved model so that predictions can be made about
